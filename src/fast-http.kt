@@ -11,8 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 class Scripts() {
     companion object {
-        const val SCRIPTENVIRONMENT = """import burp.RequestEngine, burp.Args, string, random, time, math
-
+        const val SCRIPTENVIRONMENT = """import burp.RequestEngine, burp.Args, string, random, time, math, base64, urllib
 def mean(data):
     return sum(data)/len(data)
 
@@ -215,6 +214,28 @@ class TurboIntruderFrame(inputRequest: IHttpRequestResponse, val selectionBounds
             val messageEditor = Utils.callbacks.createMessageEditor(MessageController(req), true)
             var baseInput = ""
 
+            var scriptBox = JComboBox<String>()
+//            var scriptDirForm = JTextField()
+//            var scriptDir = scriptDirForm.text
+            var scriptDir = "/Users/waderwu/websec/tiexps"
+            File(scriptDir).walkBottomUp().forEach {
+                Utils.out(it.toString()
+                )
+                if (it.toString().endsWith(".py"))
+                {
+                    scriptBox.addItem(it.toString())
+                }
+            }
+
+            scriptBox.addItemListener(ItemListener {
+                     Utils.out("trigger!")
+                     if(ItemEvent.SELECTED == it.getStateChange()){
+                        var selectedItem = it.getItem().toString()
+                        Utils.out(selectedItem)
+                        textEditor.text = File(selectedItem).readBytes()
+                     }
+            })
+
             if (fixedScript != null) {
                 textEditor.text = fixedScript.toByteArray()
                 messageEditor.setMessage(requestOverride?: req.request, true)
@@ -230,6 +251,7 @@ class TurboIntruderFrame(inputRequest: IHttpRequestResponse, val selectionBounds
 
 
                 val defaultScript = Utils.callbacks.loadExtensionSetting("defaultScript")
+
                 if (defaultScript == null) {
                     textEditor.text = Scripts.SAMPLEBURPSCRIPT.toByteArray()
                 } else {
@@ -245,6 +267,8 @@ class TurboIntruderFrame(inputRequest: IHttpRequestResponse, val selectionBounds
             val turboSize = Utils.getTurboSize()
             messageEditor.component.preferredSize = Dimension(turboSize.width, 200)
             textEditor.component.preferredSize = Dimension(turboSize.width, turboSize.height-200)
+
+
 
             val button = JButton("Attack")
             var handler = AttackHandler()
@@ -288,7 +312,8 @@ class TurboIntruderFrame(inputRequest: IHttpRequestResponse, val selectionBounds
                 }
             })
 
-
+//            outerpane.add(scriptDirForm, BorderLayout.NORTH)
+            outerpane.add(scriptBox, BorderLayout.NORTH)
             outerpane.add(pane, BorderLayout.CENTER)
             outerpane.add(button, BorderLayout.SOUTH)
 
